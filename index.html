@@ -21,9 +21,9 @@
   .wrap{max-width:680px;margin:0 auto}
   .sec-label{font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;margin-top:20px;display:flex;align-items:center;gap:8px}
   .sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
-  .series-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
-  .series-scroll::-webkit-scrollbar{display:none}
-  .s-btn{flex-shrink:0;background:var(--card);border:1.5px solid var(--border);color:var(--muted);border-radius:20px;padding:9px 16px;font-size:16px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Noto Sans TC',sans-serif;transition:all .15s}
+  .series-scroll{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding-bottom:4px}
+  
+  .s-btn{background:var(--card);border:1.5px solid var(--border);color:var(--muted);border-radius:12px;padding:12px 16px;font-size:16px;font-weight:700;cursor:pointer;text-align:center;font-family:'Noto Sans TC',sans-serif;transition:all .15s}
   .s-btn.active{background:var(--accent);border-color:var(--accent);color:#000}
   .model-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
   .m-card{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:16px 10px;text-align:center;cursor:pointer;transition:all .15s;user-select:none}
@@ -264,12 +264,10 @@ const accData={
   "螢幕保護貼":[{id:"glass-clear",icon:"🪟",name:"高透玻璃貼",sub:"9H鋼化，高透光率",price:250,badge:"熱銷"},{id:"glass-matte",icon:"🌫️",name:"霧面玻璃貼",sub:"防指紋、抗眩光",price:290,badge:""},{id:"glass-privacy",icon:"🔒",name:"防窺玻璃貼",sub:"左右45°遮蔽視角",price:390,badge:"隱私"}],
   "鏡頭保護":[{id:"lens-std",icon:"🔭",name:"鏡頭保護貼",sub:"全包覆鏡頭模組",price:250,badge:""}],
   "線材":[
-    {id:"cable-ul-1m",icon:"🧵",name:"USB-A to Lightning 1M",sub:"Apple認證MFi",price:199,badge:""},
-    {id:"cable-ul-2m",icon:"🧵",name:"USB-A to Lightning 2M",sub:"Apple認證MFi",price:249,badge:""},
-    {id:"cable-uc-1m",icon:"🧵",name:"USB-A to Type-C 1M",sub:"快速充電",price:149,badge:""},
-    {id:"cable-uc-2m",icon:"🧵",name:"USB-A to Type-C 2M",sub:"快速充電",price:199,badge:""},
-    {id:"cable-cc-1m",icon:"🧵",name:"Type-C to Type-C 1M",sub:"100W PD快充",price:199,badge:"快充"},
-    {id:"cable-cc-2m",icon:"🧵",name:"Type-C to Type-C 2M",sub:"100W PD快充",price:249,badge:"快充"}
+    {id:"cable-ul-1m",icon:"🧵",name:"USB to Lightning 1M",sub:"Apple認證MFi",price:150,badge:""},
+    {id:"cable-uc-1m",icon:"🧵",name:"USB to Type-C 1M",sub:"快速充電",price:150,badge:""},
+    {id:"cable-cc-1m",icon:"🧵",name:"Type-C to Type-C 1M",sub:"100W PD快充",price:350,badge:"快充"},
+    {id:"cable-cc-2m",icon:"🧵",name:"Type-C to Type-C 2M",sub:"100W PD快充",price:450,badge:"快充"}
   ],
   "行動電源":[
     {id:"pb-10k",icon:"🔋",name:"10000mAh 行動電源",sub:"PD22.5W，LED電量顯示",price:990,badge:""},
