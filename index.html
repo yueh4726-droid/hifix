@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>HiFIX 維修報價系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0a0f;--card:#16161f;--accent:#00e5ff;--accent2:#ff2d78;--accent3:#ffe600;--green:#00ff99;--text:#f0f0f5;--muted:#6a6a8a;--border:#252535;--purple:#b47fff}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh;font-size:14px}
+  header{background:linear-gradient(135deg,#0d0d18,#1a0a2e 60%,#0a1828);padding:14px 16px 16px;text-align:center;border-bottom:2px solid var(--accent);position:sticky;top:0;z-index:100}
+  .logo{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:900;letter-spacing:-0.5px}
+  .logo .hi{color:var(--accent)}.logo .fix{color:var(--accent2)}
+  .logo .sub{color:#fff;font-size:0.6em;font-weight:700}
+  .tabs{display:flex;border-bottom:1px solid var(--border);background:#0d0d16;position:sticky;top:60px;z-index:90}
+  .tab{flex:1;padding:11px 6px;text-align:center;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(0,229,255,.04)}
+  .tab-icon{font-size:16px;display:block;margin-bottom:2px}
+  .page{display:none;padding:14px 12px 160px}.page.active{display:block}
+  .wrap{max-width:680px;margin:0 auto}
+  .sec-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;margin-top:20px;display:flex;align-items:center;gap:8px}
+  .sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+  .series-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+  .series-scroll::-webkit-scrollbar{display:none}
+  .s-btn{flex-shrink:0;background:var(--card);border:1.5px solid var(--border);color:var(--muted);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Noto Sans TC',sans-serif;transition:all .15s}
+  .s-btn.active{background:var(--accent);border-color:var(--accent);color:#000}
+  .model-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+  .m-card{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:11px 8px;text-align:center;cursor:pointer;transition:all .15s;user-select:none}
+  .m-card:active{transform:scale(.97)}.m-card.selected{border-color:var(--accent);background:rgba(0,229,255,.07)}
+  .m-card .m-icon{font-size:20px;margin-bottom:3px}.m-card .m-name{font-size:11px;font-weight:700;color:var(--text);line-height:1.3}
+  .m-card.selected .m-name{color:var(--accent)}
+  .repair-list{display:flex;flex-direction:column;gap:7px}
+  .r-item{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .12s;user-select:none}
+  .r-item:active{transform:scale(.99)}.r-item.selected{border-color:var(--accent2);background:rgba(255,45,120,.08)}
+  .r-item.unavail{opacity:.3;cursor:default}
+  .r-icon{font-size:18px;flex-shrink:0;width:26px;text-align:center}
+  .r-name{font-size:13px;font-weight:700;color:var(--text);line-height:1.3;flex:1}
+  .r-item.selected .r-name{color:var(--accent2)}
+  .r-price{font-family:'Montserrat',sans-serif;font-size:16px;font-weight:900;color:var(--accent3);flex-shrink:0}
+  .r-price.na{font-size:12px;color:var(--border);font-family:'Noto Sans TC',sans-serif;font-weight:400}
+  .r-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;transition:all .12s;color:transparent}
+  .r-item.selected .r-check{background:var(--accent2);border-color:var(--accent2);color:#fff}
+  .acc-section{margin-bottom:24px}
+  .acc-cat-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--purple);margin-bottom:10px;padding-left:2px}
+  .acc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+  .acc-card{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:12px 10px;cursor:pointer;transition:all .15s;user-select:none;position:relative}
+  .acc-card:active{transform:scale(.97)}.acc-card.selected{border-color:var(--purple);background:rgba(180,127,255,.08)}
+  .acc-icon{font-size:22px;margin-bottom:6px}
+  .acc-name{font-size:12px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:4px}
+  .acc-card.selected .acc-name{color:var(--purple)}
+  .acc-sub{font-size:10px;color:var(--muted);line-height:1.3;margin-bottom:6px}
+  .acc-price-row{display:flex;align-items:baseline;justify-content:space-between;gap:4px}
+  .acc-price{font-family:'Montserrat',sans-serif;font-size:14px;font-weight:900;color:var(--accent3)}
+  .acc-badge{font-size:9px;color:var(--muted);border:1px solid var(--border);border-radius:4px;padding:1px 5px;white-space:nowrap}
+  .acc-check{position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;transition:all .12s;color:transparent}
+  .acc-card.selected .acc-check{background:var(--purple);border-color:var(--purple);color:#fff}
+  .acc-qty{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .qty-btn{background:rgba(180,127,255,.15);border:1px solid var(--purple);color:var(--purple);border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0}
+  .qty-val{font-size:13px;font-weight:700;color:var(--text);min-width:20px;text-align:center}
+  .form-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+  .form-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+  .form-title span{font-size:16px}
+  .form-row{margin-bottom:12px}
+  .form-label{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted);margin-bottom:5px;display:block}
+  .form-input,.form-select,.form-textarea{width:100%;background:#0f0f1a;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:13px;outline:none;transition:border-color .15s;-webkit-appearance:none}
+  .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent)}
+  .form-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a6a8a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+  .form-textarea{resize:vertical;min-height:80px}
+  .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .photo-area{border:2px dashed var(--border);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
+  .photo-area:hover{border-color:var(--accent);background:rgba(0,229,255,.04)}
+  .photo-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+  .photo-area .upload-icon{font-size:28px;margin-bottom:6px}
+  .photo-area .upload-text{font-size:12px;color:var(--muted);line-height:1.5}
+  .photo-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .photo-thumb{width:70px;height:70px;border-radius:8px;object-fit:cover;border:2px solid var(--border)}
+  .photo-thumb-wrap{position:relative}
+  .photo-del{position:absolute;top:-6px;right:-6px;background:var(--accent2);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;cursor:pointer}
+  .summary-mini{background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.2);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+  .summary-mini-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .summary-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;gap:8px}
+  .summary-row .label{color:var(--muted);flex-shrink:0}
+  .summary-row .val{color:var(--text);font-weight:700;text-align:right}
+  .summary-total{display:flex;justify-content:space-between;border-top:1px solid rgba(0,229,255,.2);margin-top:8px;padding-top:8px}
+  .summary-total .label{font-size:12px;color:var(--accent);font-weight:700}
+  .summary-total .val{font-family:'Montserrat',sans-serif;font-size:18px;font-weight:900;color:var(--accent3)}
+  .submit-btn{width:100%;background:linear-gradient(135deg,#06C755,#00a843);border:none;border-radius:12px;padding:15px;color:#fff;font-family:'Noto Sans TC',sans-serif;font-size:15px;font-weight:900;cursor:pointer;letter-spacing:.5px;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+  .submit-btn:active{transform:scale(.98)}.submit-btn:disabled{opacity:.5;cursor:not-allowed}
+  .line-status{background:rgba(6,199,85,.08);border:1px solid rgba(6,199,85,.3);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:12px}
+  .line-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+  .stat-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:12px 10px;text-align:center}
+  .stat-num{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:900;color:var(--accent3);line-height:1}
+  .stat-label{font-size:10px;color:var(--muted);margin-top:4px;font-weight:700;letter-spacing:.5px}
+  .record-list{display:flex;flex-direction:column;gap:8px}
+  .record-item{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:13px 14px;cursor:pointer;transition:border-color .15s}
+  .record-item:hover{border-color:var(--muted)}
+  .record-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+  .record-id{font-size:11px;color:var(--muted);font-family:'Montserrat',sans-serif;font-weight:700}
+  .record-status{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700}
+  .status-pending{background:rgba(255,230,0,.15);color:var(--accent3)}
+  .status-done{background:rgba(0,255,153,.15);color:var(--green)}
+  .record-model{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+  .record-customer{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .record-amounts{display:flex;gap:12px}
+  .amount-item{font-size:11px}
+  .amount-label{color:var(--muted)}
+  .amount-val{font-family:'Montserrat',sans-serif;font-weight:900}
+  .amount-repair{color:var(--accent2)}.amount-acc{color:var(--purple)}.amount-total{color:var(--accent3)}
+  .empty-state{text-align:center;padding:40px 16px;color:var(--muted);border:2px dashed var(--border);border-radius:14px}
+  .empty-state .big{font-size:40px;display:block;margin-bottom:10px}
+  .filter-row{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none}
+  .filter-btn{flex-shrink:0;background:var(--card);border:1.5px solid var(--border);color:var(--muted);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all .15s}
+  .filter-btn.active{background:var(--green);border-color:var(--green);color:#000}
+  .toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:all .3s;z-index:999;pointer-events:none;white-space:nowrap;background:var(--green);color:#000}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.err{background:var(--accent2);color:#fff}
+  .total-bar{position:fixed;bottom:0;left:0;right:0;padding:8px 12px 18px;z-index:200;display:none;background:linear-gradient(to top,#0a0a0f 70%,transparent)}
+  .total-bar.show{display:block}
+  .total-inner{max-width:680px;margin:0 auto;background:linear-gradient(135deg,#1a0830,#0a1828);border:2px solid var(--accent);border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:10px}
+  .total-left{flex:1;min-width:0}
+  .total-label{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+  .total-breakdown{font-size:11px;color:var(--text);line-height:1.4}
+  .total-right{flex-shrink:0;text-align:right}
+  .total-amount{font-family:'Montserrat',sans-serif;font-size:26px;font-weight:900;color:var(--accent3);line-height:1}
+  .total-count{font-size:10px;color:var(--muted);margin-top:1px}
+  .clear-btn{background:rgba(255,45,120,.12);border:1.5px solid var(--accent2);color:var(--accent2);border-radius:8px;padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;flex-shrink:0}
+  .placeholder{text-align:center;padding:24px 16px;color:var(--muted);font-size:13px;border:2px dashed var(--border);border-radius:14px}
+  .placeholder .big{font-size:32px;display:block;margin-bottom:6px}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+  .modal-overlay.show{opacity:1;pointer-events:all}
+  .modal{background:#16161f;border:1.5px solid var(--border);border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:680px;max-height:80vh;overflow-y:auto;transform:translateY(20px);transition:transform .25s}
+  .modal-overlay.show .modal{transform:translateY(0)}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .modal-title{font-size:15px;font-weight:700;color:var(--text)}
+  .modal-close{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer}
+  .detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+  .detail-row:last-child{border-bottom:none}
+  .detail-label{color:var(--muted)}.detail-val{font-weight:700;color:var(--text)}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+<header>
+  <div class="logo"><span class="hi">Hi</span><span class="fix">FIX</span> <span class="sub">維修報價系統</span></div>
+</header>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('quote')"><span class="tab-icon">🔧</span>維修報價</div>
+  <div class="tab" onclick="switchTab('accessories')"><span class="tab-icon">📦</span>配件加購</div>
+  <div class="tab" onclick="switchTab('dispatch')"><span class="tab-icon">🚐</span>派車表單</div>
+  <div class="tab" onclick="switchTab('records')"><span class="tab-icon">📊</span>訂單紀錄</div>
+</div>
+
+<div class="page active" id="page-quote"><div class="wrap">
+  <div class="sec-label">選擇系列</div>
+  <div class="series-scroll" id="seriesTabs"></div>
+  <div class="sec-label" style="margin-top:16px">選擇機型</div>
+  <div class="model-grid" id="modelGrid"><div class="placeholder"><span class="big">👆</span>請先選擇系列</div></div>
+  <div class="sec-label" style="margin-top:16px">選擇維修項目（可複選）</div>
+  <div class="repair-list" id="repairList"><div class="placeholder"><span class="big">🔧</span>請先選擇機型</div></div>
+</div></div>
+
+<div class="page" id="page-accessories"><div class="wrap">
+  <div class="sec-label">配件加購區 <span style="font-size:10px;color:var(--purple);letter-spacing:0;text-transform:none;font-weight:400">建議市價</span></div>
+  <div id="accContainer"></div>
+</div></div>
+
+<div class="page" id="page-dispatch"><div class="wrap">
+  <div class="line-status">
+    <div class="line-dot"></div>
+    <div style="flex:1">
+      <div style="font-weight:700;color:var(--green)">LINE 已串接 ✓ Cloudflare Worker</div>
+      <div style="color:var(--muted);font-size:11px;margin-top:1px">rapid-cell-8af5.yueh4726.workers.dev</div>
+    </div>
+    <div style="font-size:18px">💬</div>
+  </div>
+  <div id="dispatchSummary"></div>
+  <div class="form-card">
+    <div class="form-title"><span>👤</span> 客戶資訊</div>
+    <div class="form-row-2">
+      <div class="form-row" style="margin-bottom:0"><label class="form-label">客戶姓名 *</label><input class="form-input" id="fName" placeholder="王小明"></div>
+      <div class="form-row" style="margin-bottom:0"><label class="form-label">聯絡電話 *</label><input class="form-input" id="fPhone" placeholder="0912-345-678" type="tel"></div>
+    </div>
+  </div>
+  <div class="form-card">
+    <div class="form-title"><span>🚐</span> 派車資訊</div>
+    <div class="form-row"><label class="form-label">取件地址 *</label><input class="form-input" id="fAddress" placeholder="高雄市三民區..."></div>
+    <div class="form-row-2">
+      <div class="form-row" style="margin-bottom:0"><label class="form-label">預約日期 *</label><input class="form-input" id="fDate" type="date"></div>
+      <div class="form-row" style="margin-bottom:0"><label class="form-label">預約時段 *</label>
+        <select class="form-select" id="fTime">
+          <option value="">請選擇</option>
+          <option>09:00–11:00</option><option>11:00–13:00</option>
+          <option>13:00–15:00</option><option>15:00–17:00</option>
+          <option>17:00–19:00</option><option>19:00–21:00</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row" style="margin-top:12px"><label class="form-label">備註</label><textarea class="form-textarea" id="fNote" placeholder="門口對講機、樓層、特殊要求…"></textarea></div>
+  </div>
+  <div class="form-card">
+    <div class="form-title"><span>📷</span> 照片上傳（最多 8 張）</div>
+    <div class="photo-area">
+      <input type="file" accept="image/*" multiple onchange="handleFiles(this.files)">
+      <div class="upload-icon">📂</div>
+      <div class="upload-text">點擊或拖曳上傳照片<br><span style="font-size:10px">支援 JPG、PNG、HEIC</span></div>
+    </div>
+    <div class="photo-preview" id="photoPreview"></div>
+  </div>
+  <button class="submit-btn" onclick="submitForm()" id="submitBtn"><span style="font-size:20px">💬</span> 送出並發送 LINE 通知</button>
+</div></div>
+
+<div class="page" id="page-records"><div class="wrap">
+  <div class="stat-grid" id="statGrid"></div>
+  <div class="sec-label">訂單紀錄</div>
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="filterRecords('all',this)">全部</button>
+    <button class="filter-btn" onclick="filterRecords('pending',this)">待維修</button>
+    <button class="filter-btn" onclick="filterRecords('done',this)">已完成</button>
+  </div>
+  <div class="record-list" id="recordList"></div>
+</div></div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="modalTitle">訂單詳情</div><div class="modal-close" onclick="closeModal()">✕</div></div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<div class="total-bar" id="totalBar">
+  <div class="total-inner">
+    <div class="total-left"><div class="total-label">報價小計</div><div class="total-breakdown" id="totalBreakdown"></div></div>
+    <div class="total-right"><div class="total-amount" id="totalAmount">NT$0</div><div class="total-count" id="totalCount"></div></div>
+    <button class="clear-btn" onclick="clearAll()">清除</button>
+  </div>
+</div>
+
+<script>
+// ── 設定區 ────────────────────────────────────────────────────────────────────
+const WORKER_URL = 'https://rapid-cell-8af5.yueh4726.workers.dev/';
+const LINE_TOKEN = '9JXlWilQtOTFX5UZ4U6fRSLKTnmUrRFnGlQ/f5cidtxo1mgQQrO9ZH4duzm59r9XPPCQu1feSXz+erfQvO+SOJi8yPjeSNyAFOfOXt06/EmqaHD65U0oxWqtEBvY7JUiBy6JHs46RveApRVRm6LNIwdB04t89/1O/w1cDnyilFU=';
+const LINE_USER_ID = 'U85bfa3d5c28e004303a1d77e4c4a2cf0';
+
+// ── 維修資料 ──────────────────────────────────────────────────────────────────
+const repairData = {
+  "iPhone 6 系列":{models:["iPhone 6","iPhone 6 Plus","iPhone 6S","iPhone 6S Plus"],repairs:{"螢幕":[1200,1200,1200,1500],"電池":[590,590,590,590],"尾部充電音頻總成":[700,700,700,700],"音量排線":[700,700,700,700],"開機排線":[700,700,700,700],"後鏡頭":[700,700,700,700],"前鏡頭+感光":[700,700,700,700],"聽筒":[700,700,700,700],"WIFI模組":[700,700,700,700],"喇叭":[700,700,700,700],"振動器":[700,700,700,700],"鏡頭外蓋玻璃片":[500,500,500,500],"接零件拉資料":[500,500,500,500],"泡水清潔":[500,500,500,500],"SIM卡托":[300,300,300,300],"HOME鍵":[800,800,800,800],"背蓋中框一起換":[1200,1200,1200,1200]}},
+  "iPhone SE 系列":{models:["iPhone SE","iPhone SE2","iPhone SE3"],repairs:{"螢幕":[1200,2000,2000],"原廠螢幕":[null,5200,5200],"電池":[790,890,990],"原廠電池":[null,1790,1790],"尾部充電音頻總成":[700,1000,1000],"音量排線":[700,1000,1000],"開機排線":[700,1000,1000],"後鏡頭":[700,1800,2000],"前鏡頭+感光":[700,1000,1000],"聽筒":[700,1000,1000],"WIFI模組":[700,1000,1000],"喇叭":[700,1000,1000],"振動器":[700,1000,1000],"接零件拉資料":[500,500,500],"泡水清潔":[500,500,500],"SIM卡托":[300,300,300],"HOME鍵":[800,1200,1300],"無線充電":[null,1200,1300],"背蓋中框一起換":[1200,2000,2000]}},
+  "iPhone X 系列":{models:["iPhone X","iPhone XS","iPhone XS Max","iPhone XR"],repairs:{"螢幕":[2900,2900,2900,2900],"原廠螢幕":[9900,9900,11500,7900],"電池":[1190,1190,1190,1190],"原廠電池":[2490,2490,2490,2490],"尾部充電音頻總成":[1200,1200,1200,1200],"音量排線":[1200,1200,1200,1200],"開機排線":[1200,1200,1200,1200],"後鏡頭":[1500,1500,1500,1500],"前鏡頭":[2000,2000,2000,2000],"臉部辨識修復":[2000,2000,2000,2000],"聽筒模組":[2000,2000,2000,2000],"WIFI模組":[1200,1200,1800,1400],"GPS天線":[1200,null,null,1200],"藍芽模組":[1200,1200,1200,1200],"喇叭":[1200,1200,1200,1200],"振動器":[1200,1200,1200,1200],"鏡頭外蓋玻璃片":[800,800,800,800],"接零件拉資料":[800,800,800,800],"泡水清潔":[500,500,500,500],"SIM卡托":[300,300,300,300],"無線充電":[1200,1200,1200,1200],"背蓋中框一起換":[2300,2400,2400,2300],"原廠後鏡頭":[4500,4500,4500,4500],"原廠前鏡頭":[7000,7000,7000,7000]}},
+  "iPhone 11 系列":{models:["iPhone 11","iPhone 11 Pro","iPhone 11 Pro Max"],repairs:{"螢幕":[3400,3400,3400],"原廠螢幕":[7900,11190,12900],"電池":[1290,1290,1290],"原廠電池":[2490,2490,2490],"尾部充電音頻總成":[1600,1600,1600],"音量排線":[1600,1600,1600],"開機排線":[1600,1600,1600],"後鏡頭":[2000,3000,3000],"前鏡頭":[1800,2000,2000],"臉部辨識修復":[2500,2500,2500],"聽筒模組":[2300,2300,2300],"WIFI模組":[1600,1600,1600],"GPS天線":[1600,1600,1600],"藍芽模組":[1600,1600,1600],"喇叭":[1600,1600,1600],"振動器":[1600,1600,1600],"鏡頭外蓋玻璃片":[800,800,800],"接零件拉資料":[800,800,800],"泡水清潔":[500,500,500],"SIM卡托":[300,300,300],"無線充電":[1600,1600,1600],"背蓋中框一起換":[2500,2900,2900],"原廠後鏡頭":[4990,5700,5700],"原廠前鏡頭":[7000,7000,7000]}},
+  "iPhone 12 系列":{models:["iPhone 12","iPhone 12 Pro","iPhone 12 Pro Max","iPhone 12 Mini"],repairs:{"螢幕":[4500,4500,4800,4800],"原廠螢幕":[11500,11500,12900,9500],"電池":[1290,1290,1290,1290],"原廠電池":[2490,2490,2490,2490],"尾部充電音頻總成":[2500,2500,2500,2200],"音量+開機鍵+無線充電":[2500,2500,2500,2200],"後攝像頭":[2500,3300,3500,2500],"前攝像頭":[3000,3000,3000,3000],"臉部辨識修復":[3300,3300,3300,2700],"聽筒模組":[3000,3000,3000,3000],"雷達掃瞄儀":[null,2500,2500,null],"WIFI模組(含GPS)":[2500,2500,2500,2200],"藍芽模組":[2500,2500,2500,2200],"喇叭":[2500,2500,2500,2200],"振動器":[2500,2500,2500,2200],"鏡頭外蓋玻璃片":[1000,1000,1000,1000],"接零件拉資料":[1200,1200,1200,1200],"泡水清潔":[800,800,800,800],"SIM卡托":[300,300,300,300],"背蓋中框一起換":[3000,4000,4500,3000],"單換背板玻璃":[1500,1650,1650,null],"原廠後鏡頭":[5490,6200,6200,5490],"原廠前鏡頭":[7000,7000,7000,7000]}},
+  "iPhone 13 系列":{models:["iPhone 13","iPhone 13 Pro","iPhone 13 Pro Max","iPhone 13 Mini"],repairs:{"螢幕":[4500,5900,6300,4800],"原廠螢幕":[11500,11500,12900,9500],"螢幕通病修復":[null,4000,4000,null],"電池":[1490,1490,1490,1490],"原廠電池":[2490,2490,2490,2490],"尾部充電音頻總成":[2500,2500,2500,2500],"音量+開機鍵+無線充電":[2800,3000,3000,2800],"後攝像頭":[2500,3800,3800,2500],"前攝像頭":[3300,3300,3300,3300],"臉部辨識修復":[3500,3500,3500,3500],"聽筒模組":[2500,2500,2500,2500],"雷達掃瞄儀":[null,3000,3000,null],"距離感應排線":[3300,3300,3300,3300],"WIFI模組":[2500,2500,2500,2500],"GPS天線":[2500,2500,2500,2500],"藍芽模組":[2500,2500,2500,2500],"喇叭":[2800,3000,3000,2800],"振動器":[2800,3000,3000,2800],"鏡頭外蓋玻璃片":[1300,1300,1300,1300],"接零件拉資料":[1500,1500,1500,1500],"泡水清潔":[800,800,800,800],"SIM卡托":[500,500,500,500],"背蓋中框一起換":[3000,3800,3800,3000],"單換背板玻璃":[1500,1800,1800,null],"原廠後鏡頭":[5490,6200,6200,5490],"原廠前鏡頭":[7700,8000,8000,7700]}},
+  "iPhone 14 系列":{models:["iPhone 14","iPhone 14 Plus","iPhone 14 Pro","iPhone 14 Pro Max"],repairs:{"螢幕":[5500,5800,7500,8500],"原廠螢幕":[11500,12900,12900,14600],"電池":[1590,1590,1590,1590],"原廠電池":[2850,2850,2850,2850],"尾部充電音頻總成":[2700,2700,3400,3400],"音量+開機鍵+無線充電":[2700,2700,3500,3500],"後攝像頭":[2700,2700,4700,4700],"前攝像頭":[4200,4200,4200,4200],"臉部辨識修復":[4000,4000,4000,4000],"聽筒模組":[3500,3500,3500,3500],"雷達掃瞄儀":[null,null,3700,3700],"距離感應排線":[4200,4200,4200,4200],"WIFI模組":[2700,2700,3400,3400],"GPS天線":[2700,2700,3400,3400],"藍芽模組":[2700,2700,3400,3400],"喇叭":[2700,2700,3400,3400],"振動器":[2700,2700,3400,3400],"鏡頭外蓋玻璃片":[1300,1300,1300,1300],"接零件拉資料":[1800,1800,1800,1800],"泡水清潔":[800,800,800,800],"SIM卡托":[500,500,500,500],"背蓋中框一起換":[5000,5000,4500,4800],"單背板":[2500,2500,1800,1800],"單中框":[3300,3300,null,null],"原廠後鏡頭":[5490,5490,7000,7000],"原廠前鏡頭":[9500,9500,9500,9500],"原廠背板玻璃":[5400,6500,null,null]}},
+  "iPhone 15 系列":{models:["iPhone 15","iPhone 15 Plus","iPhone 15 Pro","iPhone 15 Pro Max"],repairs:{"螢幕":[6000,6000,8500,9000],"原廠螢幕":[11500,12900,12900,14600],"電池":[1790,1790,1790,1790],"原廠電池":[2850,2850,2850,2850],"尾部充電音頻總成":[3000,3000,3000,3000],"音量+開機鍵+無線充電":[3000,3000,3000,3000],"後攝像頭":[3500,3500,4700,4700],"前攝像頭":[3500,3500,3700,3700],"臉部辨識修復":[4500,4500,4500,4500],"聽筒模組":[3500,3500,3500,3500],"雷達掃瞄儀":[null,null,3700,3700],"距離感應排線":[4200,4200,4200,4200],"WIFI模組":[3000,3000,3000,3000],"GPS天線":[3400,3400,3400,3400],"藍芽模組":[3000,3000,3000,3000],"喇叭":[3000,3000,3000,3000],"振動器":[3000,3000,3000,3000],"鏡頭外蓋玻璃片":[1300,1300,1300,1300],"接零件拉資料":[2500,2500,2500,2500],"泡水清潔":[800,800,800,800],"SIM卡托":[500,500,500,500],"背蓋中框一起換":[6000,6000,6000,6000],"單背板":[3000,3000,3300,3300],"單中框":[3300,3300,3300,3300],"原廠後鏡頭":[5700,5700,7700,7700],"原廠前鏡頭":[9700,9700,9700,9700],"原廠背板玻璃":[6500,7500,6500,7500]}},
+  "iPhone 16 系列":{models:["iPhone 16e","iPhone 16","iPhone 16 Plus","iPhone 16 Pro","iPhone 16 Pro Max"],repairs:{"螢幕":[6500,6500,7000,8900,9900],"原廠螢幕":[null,12300,13900,13900,15900],"電池":[1790,1790,1790,1790,1790],"原廠電池":[null,2850,2850,3650,3650],"尾部充電音頻總成":[3500,3500,3500,3500,3500],"音量+開機鍵+無線充電":[3500,3500,3500,3500,3500],"後攝像頭":[4300,4300,4300,4300,4300],"前攝像頭":[4200,4200,4200,4200,4200],"臉部辨識修復":[null,4700,4700,4700,4700],"聽筒模組":[3500,3500,3500,3500,3500],"雷達掃瞄儀":[null,null,null,4300,4300],"距離感應排線":[4200,4200,4200,4200,4200],"WIFI模組":[3500,3500,3500,3500,3500],"GPS天線":[4300,4300,4300,4300,4300],"藍芽模組":[3500,3500,3500,3500,3500],"喇叭":[3500,3500,3500,3500,3500],"振動器":[3500,3500,3500,3500,3500],"鏡頭外蓋玻璃片":[1300,1300,1300,1300,1300],"相機控制鍵":[null,3800,3800,3800,3800],"接零件拉資料":[2500,2500,2500,2500,2500],"泡水清潔":[1500,1500,1500,1500,1500],"SIM卡托":[500,500,500,500,500],"背蓋中框一起換":[7000,7000,7000,8000,8000],"單背板":[3500,3500,3500,4000,4000],"單中框":[4500,4500,4500,5000,5000],"原廠後鏡頭":[null,8700,8700,8700,8700],"原廠前鏡頭":[null,9700,9700,9700,9700],"原廠背板玻璃":[null,6500,7500,6500,7500]}},
+  "iPhone 17 系列":{models:["iPhone 17","iPhone 17 Air","iPhone 17 Pro","iPhone 17 Pro Max"],repairs:{"螢幕":[null,null,8900,9900],"原廠螢幕":[13900,13900,13900,15900],"電池":[2490,null,2490,2490],"原廠電池":[3350,4150,4150,4150],"尾部充電音頻總成":[3500,3500,3500,3500],"音量+開機鍵+無線充電":[3500,3500,3500,3500],"後攝像頭":[4300,4300,4300,4300],"前攝像頭":[4200,4200,4200,4200],"臉部辨識修復":[4700,4700,4700,4700],"聽筒模組":[3500,3500,3500,3500],"雷達掃瞄儀":[null,null,4300,4300],"距離感應排線":[4200,4200,4200,4200],"WIFI模組":[3500,3500,3500,3500],"藍芽模組":[3500,3500,3500,3500],"喇叭":[3500,3500,3500,3500],"振動器":[3500,3500,3500,3500],"鏡頭外蓋玻璃片":[1500,1500,1500,1500],"相機控制鍵":[4300,4300,4300,4300],"接零件拉資料":[3000,3000,3000,3000],"泡水清潔":[1500,1500,1500,1500],"SIM卡托":[500,null,500,500],"背蓋中框一起換":[8600,8600,9500,9500],"單背板":[4300,4300,4300,4300],"單中框":[5300,5300,6300,6300],"原廠後鏡頭":[5700,5700,7700,7700],"原廠前鏡頭":[9700,9700,9700,9700],"原廠背板玻璃":[6500,6500,6500,6500]}}
+};
+
+const repairIcons={"螢幕":"📱","原廠螢幕":"✨","螢幕通病修復":"🔬","電池":"🔋","原廠電池":"⚡","尾部充電音頻總成":"🔌","尾部信號線":"📡","音量排線":"🔊","音量+開機鍵+無線充電":"🔊","開機排線":"⚙️","後鏡頭":"📷","後攝像頭":"📷","原廠後鏡頭":"📷","前鏡頭":"🤳","前鏡頭+感光":"🤳","前攝像頭":"🤳","原廠前鏡頭":"🤳","臉部辨識修復":"👤","聽筒":"🔉","聽筒模組":"🔉","WIFI模組":"📶","WIFI模組(含GPS)":"📶","GPS天線":"🛰️","藍芽模組":"🦷","喇叭":"🔈","振動器":"📳","鏡頭外蓋玻璃片":"🪟","接零件拉資料":"💾","泡水清潔":"💧","SIM卡托":"📁","HOME鍵":"🏠","無線充電":"⚡","背蓋中框一起換":"📦","單換背板玻璃":"🪞","單背板":"🪞","單中框":"🔲","雷達掃瞄儀":"🎯","距離感應排線":"📐","相機控制鍵":"🎛️","原廠背板玻璃":"🪟"};
+
+const accData={
+  "螢幕保護貼":[{id:"glass-clear",icon:"🪟",name:"高透玻璃貼",sub:"9H鋼化，高透光率",price:250,badge:"熱銷"},{id:"glass-matte",icon:"🌫️",name:"霧面玻璃貼",sub:"防指紋、抗眩光",price:290,badge:""},{id:"glass-privacy",icon:"🔒",name:"防窺玻璃貼",sub:"左右45°遮蔽視角",price:390,badge:"隱私"}],
+  "鏡頭保護":[{id:"lens-std",icon:"🔭",name:"鏡頭保護貼",sub:"全包覆鏡頭模組",price:199,badge:""},{id:"lens-ring",icon:"💍",name:"鏡頭保護環",sub:"鋁合金，多色可選",price:350,badge:""}],
+  "充電配件":[{id:"charger-65w",icon:"⚡",name:"65W GaN 快充頭",sub:"雙孔，支援PD/QC",price:890,badge:"快充"},{id:"charger-30w",icon:"🔌",name:"30W 快充頭",sub:"單USB-C，折疊插頭",price:490,badge:""},{id:"cable-braided",icon:"🧵",name:"編織快充線 1.8M",sub:"100W PD，C to C",price:350,badge:"耐用"},{id:"cable-lightning",icon:"🧵",name:"編織線 Lightning",sub:"Apple認證MFi",price:390,badge:""}],
+  "行動電源":[{id:"pb-10k",icon:"🔋",name:"10000mAh 行動電源",sub:"PD22.5W，LED電量",price:990,badge:""},{id:"pb-20k",icon:"🔋",name:"20000mAh 大容量",sub:"PD45W，支援筆電",price:1690,badge:"大容量"},{id:"pb-magsafe",icon:"🔋",name:"MagSafe 磁吸電源",sub:"5000mAh，無線吸附",price:1290,badge:"MagSafe"}]
+};
+
+// ── 狀態 ──────────────────────────────────────────────────────────────────────
+let selSeries=null,selModel=null,selModelIdx=null,selectedRepairs={},selectedAcc={},uploadedPhotos=[];
+let orders=JSON.parse(localStorage.getItem('hiFix_orders')||'[]');
+
+// ── TAB 切換 ──────────────────────────────────────────────────────────────────
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>{if(t.getAttribute('onclick')===`switchTab('${id}')`)t.classList.add('active');});
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(id==='dispatch')renderDispatchSummary();
+  if(id==='records')renderRecords();
+  if(id==='accessories')renderAccessories();
+}
+
+// ── 維修報價 ──────────────────────────────────────────────────────────────────
+const tabsEl=document.getElementById('seriesTabs');
+Object.keys(repairData).forEach(s=>{
+  const btn=document.createElement('button');btn.className='s-btn';btn.textContent=s;
+  btn.onclick=()=>selectSeries(s,btn);tabsEl.appendChild(btn);
+});
+function selectSeries(s,btn){selSeries=s;selModel=null;selModelIdx=null;selectedRepairs={};document.querySelectorAll('.s-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderModels();renderRepairs();updateTotal();}
+function renderModels(){const g=document.getElementById('modelGrid');g.innerHTML='';repairData[selSeries].models.forEach((m,i)=>{const c=document.createElement('div');c.className='m-card';c.innerHTML=`<div class="m-icon">📱</div><div class="m-name">${m}</div>`;c.onclick=()=>selectModel(m,i,c);g.appendChild(c);});}
+function selectModel(m,i,el){selModel=m;selModelIdx=i;selectedRepairs={};document.querySelectorAll('.m-card').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');renderRepairs();updateTotal();}
+function renderRepairs(){
+  const list=document.getElementById('repairList');list.innerHTML='';
+  if(!selModel){list.innerHTML='<div class="placeholder"><span class="big">🔧</span>請先選擇機型</div>';return;}
+  Object.entries(repairData[selSeries].repairs).forEach(([name,prices])=>{
+    const price=prices[selModelIdx];const avail=price&&price>0;
+    const el=document.createElement('div');el.className='r-item'+(avail?'':' unavail');
+    el.innerHTML=`<div class="r-icon">${repairIcons[name]||'🔧'}</div><div class="r-name">${name}</div><div class="${avail?'r-price':'r-price na'}">${avail?'NT$'+price.toLocaleString():'不支援'}</div><div class="r-check">✓</div>`;
+    if(avail)el.onclick=()=>toggleRepair(el,name,price);
+    list.appendChild(el);
+  });
+}
+function toggleRepair(el,name,price){if(selectedRepairs[name]){delete selectedRepairs[name];el.classList.remove('selected');}else{selectedRepairs[name]=price;el.classList.add('selected');}updateTotal();}
+function clearAll(){selectedRepairs={};document.querySelectorAll('.r-item.selected').forEach(el=>el.classList.remove('selected'));updateTotal();}
+function updateTotal(){
+  const rTotal=Object.values(selectedRepairs).reduce((a,b)=>a+b,0);
+  const aTotal=Object.values(selectedAcc).reduce((a,b)=>a+(b.price*b.qty),0);
+  const bar=document.getElementById('totalBar');
+  if(!rTotal&&!aTotal){bar.classList.remove('show');return;}
+  bar.classList.add('show');
+  document.getElementById('totalAmount').textContent='NT$'+(rTotal+aTotal).toLocaleString();
+  let bd='';if(rTotal)bd+=`維修 NT$${rTotal.toLocaleString()}`;if(aTotal)bd+=(bd?' ＋ ':'')+`配件 NT$${aTotal.toLocaleString()}`;
+  document.getElementById('totalBreakdown').textContent=bd;
+  document.getElementById('totalCount').textContent=`共 ${Object.keys(selectedRepairs).length+Object.keys(selectedAcc).length} 項`;
+}
+
+// ── 配件 ──────────────────────────────────────────────────────────────────────
+function renderAccessories(){
+  const container=document.getElementById('accContainer');container.innerHTML='';
+  Object.entries(accData).forEach(([cat,items])=>{
+    const sec=document.createElement('div');sec.className='acc-section';
+    let html=`<div class="acc-cat-label">${cat}</div><div class="acc-grid">`;
+    items.forEach(item=>{
+      const sel=selectedAcc[item.id];const qty=sel?sel.qty:1;
+      html+=`<div class="acc-card${sel?' selected':''}" id="acc-${item.id}"><div class="acc-check">✓</div><div class="acc-icon">${item.icon}</div><div class="acc-name">${item.name}</div><div class="acc-sub">${item.sub}</div><div class="acc-price-row"><div class="acc-price">NT$${item.price.toLocaleString()}</div>${item.badge?`<div class="acc-badge">${item.badge}</div>`:''}</div>${sel?`<div class="acc-qty"><div class="qty-btn" onclick="event.stopPropagation();changeQty('${item.id}',-1)">−</div><div class="qty-val">${qty}</div><div class="qty-btn" onclick="event.stopPropagation();changeQty('${item.id}',+1)">＋</div></div>`:''}</div>`;
+    });
+    html+='</div>';sec.innerHTML=html;
+    items.forEach(item=>{sec.querySelector(`#acc-${item.id}`).addEventListener('click',()=>toggleAcc(item));});
+    container.appendChild(sec);
+  });
+}
+function toggleAcc(item){if(selectedAcc[item.id])delete selectedAcc[item.id];else selectedAcc[item.id]={price:item.price,qty:1,name:item.name};updateTotal();renderAccessories();}
+function changeQty(id,delta){if(!selectedAcc[id])return;selectedAcc[id].qty=Math.max(1,selectedAcc[id].qty+delta);updateTotal();renderAccessories();}
+
+// ── 派車表單 ──────────────────────────────────────────────────────────────────
+function renderDispatchSummary(){
+  const div=document.getElementById('dispatchSummary');
+  const rKeys=Object.keys(selectedRepairs),aKeys=Object.keys(selectedAcc);
+  if(!rKeys.length&&!aKeys.length){div.innerHTML='<div class="placeholder" style="margin-bottom:12px"><span class="big">🔧</span>尚未選擇維修項目</div>';return;}
+  const rTotal=Object.values(selectedRepairs).reduce((a,b)=>a+b,0);
+  const aTotal=Object.values(selectedAcc).reduce((a,b)=>a+(b.price*b.qty),0);
+  let html=`<div class="summary-mini"><div class="summary-mini-title">本單摘要</div>`;
+  if(selModel)html+=`<div class="summary-row"><span class="label">機型</span><span class="val">${selModel}</span></div>`;
+  if(rKeys.length)html+=`<div class="summary-row"><span class="label">維修項目</span><span class="val">${rKeys.join('、')}</span></div>`;
+  if(aKeys.length)html+=`<div class="summary-row"><span class="label">加購配件</span><span class="val">${Object.values(selectedAcc).map(a=>`${a.name}×${a.qty}`).join('、')}</span></div>`;
+  if(rTotal)html+=`<div class="summary-row"><span class="label">維修費</span><span class="val" style="color:#ff2d78">NT$${rTotal.toLocaleString()}</span></div>`;
+  if(aTotal)html+=`<div class="summary-row"><span class="label">配件費</span><span class="val" style="color:#b47fff">NT$${aTotal.toLocaleString()}</span></div>`;
+  html+=`<div class="summary-total"><span class="label">總計</span><span class="val">NT$${(rTotal+aTotal).toLocaleString()}</span></div></div>`;
+  div.innerHTML=html;
+}
+function handleFiles(files){Array.from(files).slice(0,8-uploadedPhotos.length).forEach(f=>{const r=new FileReader();r.onload=e=>{uploadedPhotos.push({name:f.name,data:e.target.result});renderPreviews();};r.readAsDataURL(f);});}
+function renderPreviews(){document.getElementById('photoPreview').innerHTML=uploadedPhotos.map((p,i)=>`<div class="photo-thumb-wrap"><img class="photo-thumb" src="${p.data}"><div class="photo-del" onclick="removePhoto(${i})">✕</div></div>`).join('');}
+function removePhoto(i){uploadedPhotos.splice(i,1);renderPreviews();}
+
+async function submitForm(){
+  const name=document.getElementById('fName').value.trim();
+  const phone=document.getElementById('fPhone').value.trim();
+  const addr=document.getElementById('fAddress').value.trim();
+  const date=document.getElementById('fDate').value;
+  const time=document.getElementById('fTime').value;
+  if(!name||!phone||!addr||!date||!time){showToast('⚠️ 請填寫所有必填欄位',true);return;}
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;btn.innerHTML='<span style="font-size:20px">⏳</span> 發送中...';
+  const rTotal=Object.values(selectedRepairs).reduce((a,b)=>a+b,0);
+  const aTotal=Object.values(selectedAcc).reduce((a,b)=>a+(b.price*b.qty),0);
+  const orderId='HF'+Date.now().toString().slice(-8);
+  const order={id:orderId,status:'pending',customer:{name,phone,address:addr},schedule:{date,time},note:document.getElementById('fNote').value.trim(),model:selModel||'未選擇',series:selSeries||'',repairs:{...selectedRepairs},accessories:{...selectedAcc},repairTotal:rTotal,accTotal:aTotal,grandTotal:rTotal+aTotal,photos:uploadedPhotos.length,createdAt:new Date().toISOString()};
+  orders.unshift(order);
+  localStorage.setItem('hiFix_orders',JSON.stringify(orders));
+  let sent=false;
+  try{
+    const resp=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:LINE_TOKEN,userId:LINE_USER_ID,message:buildLineMessage(order)})});
+    const result=await resp.json();
+    console.log('LINE result:',result);
+    sent=resp.ok&&!result.message;
+  }catch(e){console.warn('fetch err:',e);}
+  showToast(sent?'💬 LINE 通知已發送！':'✅ 訂單建立（請檢查 LINE）',!sent);
+  setTimeout(()=>{
+    selectedRepairs={};selectedAcc={};uploadedPhotos=[];selModel=null;selModelIdx=null;selSeries=null;
+    document.querySelectorAll('.r-item.selected,.m-card.selected,.s-btn.active').forEach(e=>e.classList.remove('selected','active'));
+    ['fName','fPhone','fAddress','fNote'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('fTime').value='';document.getElementById('photoPreview').innerHTML='';
+    renderDispatchSummary();updateTotal();
+    btn.disabled=false;btn.innerHTML='<span style="font-size:20px">💬</span> 送出並發送 LINE 通知';
+    switchTab('records');
+  },1800);
+}
+
+function buildLineMessage(o){
+  const s='─────────────────';
+  const l=['🔔 HiFIX 新派車單',s,`📋 單號：${o.id}`,`📅 ${o.schedule.date}　${o.schedule.time}`,`👤 ${o.customer.name}　📞 ${o.customer.phone}`,`📍 ${o.customer.address}`,s,`📱 機型：${o.model||'未選擇'}`];
+  if(Object.keys(o.repairs).length)l.push(`🔧 維修：${Object.keys(o.repairs).join('、')}`);
+  if(Object.keys(o.accessories).length)l.push(`📦 配件：${Object.values(o.accessories).map(a=>`${a.name}x${a.qty}`).join('、')}`);
+  l.push(s);
+  if(o.repairTotal)l.push(`🔧 維修費：NT$${o.repairTotal.toLocaleString()}`);
+  if(o.accTotal)l.push(`📦 配件費：NT$${o.accTotal.toLocaleString()}`);
+  l.push(`💰 總計：NT$${o.grandTotal.toLocaleString()}`);
+  if(o.photos)l.push(`📷 附照片 ${o.photos} 張`);
+  if(o.note)l.push(`💬 備註：${o.note}`);
+  return l.join('\n');
+}
+
+// ── 訂單紀錄 ──────────────────────────────────────────────────────────────────
+let currentFilter='all';
+function renderRecords(){
+  const filtered=currentFilter==='all'?orders:orders.filter(o=>o.status===currentFilter);
+  const tR=orders.reduce((s,o)=>s+o.repairTotal,0),tA=orders.reduce((s,o)=>s+o.accTotal,0);
+  document.getElementById('statGrid').innerHTML=`<div class="stat-card"><div class="stat-num">${orders.length}</div><div class="stat-label">總訂單數</div></div><div class="stat-card"><div class="stat-num" style="color:#ff2d78;font-size:15px">NT$${tR.toLocaleString()}</div><div class="stat-label">維修費合計</div></div><div class="stat-card"><div class="stat-num" style="color:#b47fff;font-size:15px">NT$${tA.toLocaleString()}</div><div class="stat-label">配件費合計</div></div>`;
+  const list=document.getElementById('recordList');
+  if(!filtered.length){list.innerHTML='<div class="empty-state"><span class="big">📋</span>尚無訂單紀錄</div>';return;}
+  list.innerHTML=filtered.map(o=>`<div class="record-item" onclick="showOrderDetail('${o.id}')"><div class="record-header"><div class="record-id">#${o.id}</div><div class="record-status ${o.status==='done'?'status-done':'status-pending'}">${o.status==='done'?'已完成':'待維修'}</div></div><div class="record-model">${o.model||'未知機型'}</div><div class="record-customer">👤 ${o.customer.name}　📅 ${o.schedule.date} ${o.schedule.time}</div><div class="record-amounts">${o.repairTotal?`<div class="amount-item"><span class="amount-label">維修 </span><span class="amount-val amount-repair">NT$${o.repairTotal.toLocaleString()}</span></div>`:''} ${o.accTotal?`<div class="amount-item"><span class="amount-label">配件 </span><span class="amount-val amount-acc">NT$${o.accTotal.toLocaleString()}</span></div>`:''}<div class="amount-item"><span class="amount-label">總計 </span><span class="amount-val amount-total">NT$${o.grandTotal.toLocaleString()}</span></div></div></div>`).join('');
+}
+function filterRecords(f,btn){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderRecords();}
+function showOrderDetail(id){
+  const o=orders.find(x=>x.id===id);if(!o)return;
+  document.getElementById('modalTitle').textContent=`訂單 #${o.id}`;
+  const rI=Object.entries(o.repairs).map(([k,v])=>`${k} NT$${v.toLocaleString()}`).join('<br>');
+  const aI=Object.values(o.accessories).map(a=>`${a.name}×${a.qty} NT$${(a.price*a.qty).toLocaleString()}`).join('<br>');
+  document.getElementById('modalContent').innerHTML=`<div class="detail-row"><span class="detail-label">客戶</span><span class="detail-val">${o.customer.name}</span></div><div class="detail-row"><span class="detail-label">電話</span><span class="detail-val">${o.customer.phone}</span></div><div class="detail-row"><span class="detail-label">地址</span><span class="detail-val">${o.customer.address}</span></div><div class="detail-row"><span class="detail-label">預約時段</span><span class="detail-val">${o.schedule.date} ${o.schedule.time}</span></div><div class="detail-row"><span class="detail-label">機型</span><span class="detail-val">${o.model||'—'}</span></div>${rI?`<div class="detail-row"><span class="detail-label">維修項目</span><span class="detail-val">${rI}</span></div>`:''}${aI?`<div class="detail-row"><span class="detail-label">加購配件</span><span class="detail-val">${aI}</span></div>`:''}<div class="detail-row"><span class="detail-label">維修費</span><span class="detail-val" style="color:#ff2d78">NT$${o.repairTotal.toLocaleString()}</span></div><div class="detail-row"><span class="detail-label">配件費</span><span class="detail-val" style="color:#b47fff">NT$${o.accTotal.toLocaleString()}</span></div><div class="detail-row"><span class="detail-label">總計</span><span class="detail-val" style="color:#ffe600;font-size:16px">NT$${o.grandTotal.toLocaleString()}</span></div>${o.note?`<div class="detail-row"><span class="detail-label">備註</span><span class="detail-val">${o.note}</span></div>`:''}<div class="detail-row"><span class="detail-label">建立時間</span><span class="detail-val">${new Date(o.createdAt).toLocaleString('zh-TW')}</span></div><div style="margin-top:14px;display:flex;gap:8px">${o.status!=='done'?`<button style="flex:1;background:rgba(0,255,153,.15);border:1px solid #00ff99;color:#00ff99;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" onclick="markDone('${o.id}')">✅ 標記完成</button>`:''}<button style="flex:1;background:rgba(255,45,120,.1);border:1px solid #ff2d78;color:#ff2d78;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit" onclick="deleteOrder('${o.id}')">🗑️ 刪除訂單</button></div>`;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function markDone(id){const o=orders.find(x=>x.id===id);if(o){o.status='done';localStorage.setItem('hiFix_orders',JSON.stringify(orders));}closeModal();renderRecords();showToast('✅ 已標記完成');}
+function deleteOrder(id){orders=orders.filter(x=>x.id!==id);localStorage.setItem('hiFix_orders',JSON.stringify(orders));closeModal();renderRecords();showToast('🗑️ 訂單已刪除');}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('show');}
+function showToast(msg,isErr=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(isErr?' err':'');setTimeout(()=>t.classList.remove('show'),2800);}
+
+// ── 初始化 ────────────────────────────────────────────────────────────────────
+document.getElementById('fDate').value=new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
